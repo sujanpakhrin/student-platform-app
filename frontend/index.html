@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student records</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+<main>
+  <header><h1>Student records</h1></header>
+  <section>
+    <h2>Add a student</h2>
+    <form id="add">
+      <label>Full name<input name="name" required maxlength="100"></label>
+      <label>Email address<input name="email" type="email" required maxlength="254"></label>
+      <button>Add student</button>
+    </form>
+  </section>
+  <p id="status" role="status"></p>
+  <section>
+    <h2>Student directory</h2>
+    <p id="empty" hidden>No students yet.</p>
+    <ul id="students"></ul>
+  </section>
+  <section id="detail" hidden><h2>Student details</h2><p id="record"></p></section>
+</main>
+</body>
+</html>
