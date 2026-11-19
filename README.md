@@ -84,3 +84,16 @@ I recreated the containers with the named MySQL volume retained. After refreshin
 **Student directory after restart**
 
 ![Student directory after restart](docs/screenshots/03-student-after-restart.png)
+
+## Day 2 verification — Continuous integration
+
+[PR #1](https://github.com/sujanpakhrin/student-platform-app/pull/1) added a GitHub Actions workflow that builds the frontend and backend images, starts the three-tier application with Docker Compose, and tests student creation, listing, lookup, and deletion.
+
+After the merge to `main`, the [successful publishing run](https://github.com/sujanpakhrin/student-platform-app/actions/runs/44477859858/job/135402652672) tested the application again and pushed both tested images to Docker Hub with the tag `sha-4368a0d5f7701be833b04fdf62abcf7942c8c92f`.
+
+| Evidence                                                       | What it shows                                             |
+| -------------------------------------------------------------- | --------------------------------------------------------- |
+| [Pull request checks](docs/screenshots/04-pr-checks.png)       | The build and API tests passed before merge.              |
+| [Publishing run on main](docs/screenshots/05-main-publish.png) | GitHub Actions pushed both tested images.                 |
+| [Frontend image tag](docs/screenshots/06-frontend-tag.png)     | The frontend repository contains the commit-tagged image. |
+| [Backend image tag](docs/screenshots/07-backend-tag.png)       | The backend repository contains the matching commit tag.  |
