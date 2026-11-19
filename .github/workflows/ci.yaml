@@ -1,0 +1,71 @@
+name: Student platform CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test the student platform
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      DB_PASSWORD: ci-app-password
+      DB_ROOT_PASSWORD: ci-root-password
+      FRONTEND_PORT: "8082"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Validate Python, JavaScript, and Compose
+        run: |
+          python3 -m py_compile backend/app.py
+          node --check frontend/app.js
+          docker compose config --quiet
+
+      - name: Build images and start the stack
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Test readiness and student operations
+        run: |
+          set -euo pipefail
+          base="http://127.0.0.1:${FRONTEND_PORT}"
+
+          curl -fsS "$base/readyz" | jq -e '.status == "ready"'
+
+          student=$(curl -fsS -X POST "$base/api/students" \
+            -H 'Content-Type: application/json' \
+            -d '{"name":"CI Student","email":"ci@example.com"}')
+          id=$(jq -er '.id | numbers' <<< "$student")
+
+          curl -fsS "$base/api/students/$id" |
+            jq -e --argjson id "$id" \
+              '.id == $id and .name == "CI Student" and .email == "ci@example.com"'
+
+          curl -fsS "$base/api/students" |
+            jq -e --argjson id "$id" 'any(.[]; .id == $id)'
+
+          delete_status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -X DELETE "$base/api/students/$id")
+          test "$delete_status" = "204"
+
+          lookup_status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "$base/api/students/$id")
+          test "$lookup_status" = "404"
+
+      - name: Show container status and logs on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color --tail=60
+
+      - name: Clean up the CI stack
+        if: always()
+        run: docker compose down -v
