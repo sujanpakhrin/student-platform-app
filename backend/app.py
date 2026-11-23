@@ -35,6 +35,10 @@ def database_error(error):
     app.logger.exception("Database operation failed")
     return jsonify(error="Database unavailable. Check backend logs."), 503
 
+@app.get("/version")
+def version():
+    return jsonify(version="v2")
+
 
 @app.get("/readyz")
 def ready():
